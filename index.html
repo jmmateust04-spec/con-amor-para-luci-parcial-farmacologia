@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Examen Parcial II de Farmacología — Luciana Nassif</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root{
+    --violet-950:#2E1065; --violet-800:#4C1D95; --violet-700:#5B21B6; --violet-600:#6D28D9;
+    --violet-100:#EDE7FA; --violet-50:#F6F3FC;
+    --pink-700:#9D174D; --pink-600:#BE185D; --pink-500:#DB2777; --pink-100:#FBE4EF;
+    --ink:#211A33; --paper:#FBFAFE;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  html{scroll-padding-top: 96px;}
+  body{background:var(--paper); color:var(--ink); font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;}
+  .font-display{font-family: "Georgia", "Iowan Old Style", serif;}
+  .grad-header{background: linear-gradient(120deg, var(--violet-800) 0%, var(--violet-600) 55%, var(--pink-600) 100%);}
+  .grad-bar{background: linear-gradient(90deg, var(--violet-600), var(--pink-500));}
+  .card{background:#fff; border:1px solid #E7E1F5; border-radius: 1rem;}
+  .opt-btn{border:1.5px solid #DCD3F0; transition: background .15s, border-color .15s, transform .1s;}
+  .opt-btn:not(:disabled):hover{border-color: var(--violet-600); background: var(--violet-50);}
+  .opt-btn:not(:disabled):active{transform: scale(0.997);}
+  .opt-correct{background:#ECFDF5 !important; border-color:#10B981 !important; color:#065F46;}
+  .opt-incorrect{background:#FEF2F2 !important; border-color:#DC2626 !important; color:#991B1B;}
+  .opt-reveal{background:#ECFDF5 !important; border-color:#10B981 !important; color:#065F46;}
+  .opt-disabled{opacity:1; cursor:default;}
+  .badge-num{background: var(--violet-700); color:#fff;}
+  .fade-in{animation: fadeIn .25s ease-out;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);}}
+  .q-hidden{display:none;}
+  @media (prefers-reduced-motion: reduce){ .fade-in{animation:none;} }
+</style>
+</head>
+<body class="min-h-screen">
+
+<header class="grad-header text-white">
+  <div class="max-w-3xl mx-auto px-5 pt-8 pb-6">
+    <p class="uppercase tracking-wide text-xs text-violet-200 mb-2">Farmacología I · Farmacodinamia</p>
+    <h1 class="font-display text-2xl sm:text-3xl leading-snug">Examen Parcial II de Farmacología diseñado para Luciana Nassif</h1>
+    <p class="text-violet-100/90 text-sm mt-2 max-w-xl">29 preguntas de opción múltiple con contenido nuevo (sin repetir el Examen I), organizadas en los mismos 9 bloques temáticos. Cada respuesta se evalúa al instante con su justificación.</p>
+  </div>
+</header>
+
+<div id="progressbar-sticky" class="sticky top-0 z-20 bg-white/95 backdrop-blur border-b border-violet-100 shadow-sm">
+  <div class="max-w-3xl mx-auto px-5 py-3">
+    <div class="flex items-center justify-between gap-3 flex-wrap">
+      <div class="flex items-baseline gap-2">
+        <span id="score-text" class="font-semibold text-violet-800 text-lg">0 / 0</span>
+        <span class="text-sm text-slate-500">aciertos / intentos</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="btn-retry-fails" class="hidden text-sm px-3 py-1.5 rounded-full border border-pink-400 text-pink-700 hover:bg-pink-50 font-medium">
+          Reintentar solo fallos
+        </button>
+        <button id="btn-reset" class="text-sm px-3 py-1.5 rounded-full border border-violet-300 text-violet-700 hover:bg-violet-50 font-medium">
+          Reiniciar todo
+        </button>
+      </div>
+    </div>
+    <div class="mt-2 h-2 rounded-full bg-violet-100 overflow-hidden">
+      <div id="progress-fill" class="h-full grad-bar rounded-full" style="width:0%"></div>
+    </div>
+    <p id="progress-label" class="text-xs text-slate-500 mt-1">0 de 29 respondidas</p>
+  </div>
+</div>
+
+<main class="max-w-3xl mx-auto px-5 py-8" id="quiz-root"></main>
+
+<div id="completion-banner" class="hidden max-w-3xl mx-auto px-5 pb-16">
+  <div class="card p-6 text-center border-emerald-200 bg-emerald-50/60">
+    <p class="font-display text-xl text-emerald-800 mb-1" id="completion-title">¡Examen completado!</p>
+    <p class="text-sm text-emerald-700" id="completion-sub"></p>
+  </div>
+</div>
+
+<footer class="text-center text-xs text-slate-400 pb-10">Basado exclusivamente en el material de Farmacodinamia · Unidades 1–4 y Mecanismos de señalización / SNA</footer>
+
+<script>
+const QUESTIONS = [
+  {
+    "num": 1,
+    "bloque": 1,
+    "titulo": "Unidad 1 · Fundamentos de la farmacodinamia",
+    "pregunta": "Un fármaco simpaticomimético como la adrenalina incrementa notablemente la frecuencia cardíaca y la contractilidad al actuar sobre receptores β1, sin alterar la estructura celular. Este efecto ejemplifica el principio general de:",
+    "opciones": [
+      "Reemplazo",
+      "Acción citotóxica",
+      "Estimulación — intensifica selectivamente el nivel de actividad de células especializadas",
+      "Inhibición"
+    ],
+    "correctaIndex": 2,
+    "justificacion": "La estimulación intensifica selectivamente el nivel de actividad de células especializadas; la adrenalina y la pilocarpina son los ejemplos citados para este principio."
+  },
+  {
+    "num": 2,
+    "bloque": 2,
+    "titulo": "Unidad 2 · Receptores farmacológicos",
+    "pregunta": "Un laxante formador de masa actúa aumentando el volumen del contenido intestinal mediante un mecanismo físico, sin unirse a ningún receptor específico. Este mecanismo pertenece a la categoría de:",
+    "opciones": [
+      "Mecanismos según propiedades físicas o químicas",
+      "Mecanismos según interacción fármaco-receptor",
+      "Receptores ligados a canal iónico",
+      "Receptores acoplados a proteína G"
+    ],
+    "correctaIndex": 0,
+    "justificacion": "Los mecanismos según propiedades físicas o químicas incluyen laxantes formadores de masa, diuréticos y antiácidos, que actúan sin depender de un receptor específico."
+  },
+  {
+    "num": 3,
+    "bloque": 2,
+    "titulo": "Unidad 2 · Receptores farmacológicos",
+    "pregunta": "La interacción típica entre un fármaco y su receptor se establece mediante enlaces de baja energía (0.5-1 Kcal/mol). ¿Cuál de las siguientes opciones NO corresponde a este tipo de enlace descrito en la Unidad 2?",
+    "opciones": [
+      "Enlace covalente irreversible",
+      "Puentes de hidrógeno",
+      "Fuerzas de Van der Waals",
+      "Interacciones dipolo-dipolo"
+    ],
+    "correctaIndex": 0,
+    "justificacion": "Los tipos de enlace de baja energía descritos son: iónicos, hidrofóbicos, dipolo-dipolo, puentes de hidrógeno y fuerzas de Van der Waals. El enlace covalente irreversible no figura entre ellos."
+  },
+  {
+    "num": 4,
+    "bloque": 3,
+    "titulo": "Unidad 3 · Interacción fármaco-receptor",
+    "pregunta": "La adrenalina sobre receptores β adrenérgicos activa el receptor al máximo posible, alcanzando un efecto equivalente al de la molécula señalizadora fisiológica endógena. Este comportamiento corresponde a un:",
+    "opciones": [
+      "Agonista parcial",
+      "Agonista total, con afinidad máxima y actividad intrínseca α=1",
+      "Antagonista competitivo",
+      "Agonista inverso"
+    ],
+    "correctaIndex": 1,
+    "justificacion": "El agonista total tiene afinidad máxima y actividad intrínseca α=1; la adrenalina es el ejemplo citado, activando el receptor al máximo."
+  },
+  {
+    "num": 5,
+    "bloque": 3,
+    "titulo": "Unidad 3 · Interacción fármaco-receptor",
+    "pregunta": "Un agonista parcial típico presenta una actividad intrínseca aproximada de:",
+    "opciones": [
+      "α = 1",
+      "α = 0",
+      "α ≈ 0.6, es decir, submáxima",
+      "α ≈ -0.2"
+    ],
+    "correctaIndex": 2,
+    "justificacion": "El agonista parcial tiene actividad intrínseca 0 < α < 1, con un valor típico de referencia α ≈ 0.6 (submáxima)."
+  },
+  {
+    "num": 6,
+    "bloque": 3,
+    "titulo": "Unidad 3 · Interacción fármaco-receptor",
+    "pregunta": "La atropina bloquea receptores muscarínicos compitiendo por el mismo sitio de unión que la acetilcolina. Si se aumenta suficientemente la dosis del agonista (acetilcolina), ¿qué ocurre con el efecto máximo (Emax)?",
+    "opciones": [
+      "El Emax se reduce permanentemente, sin posibilidad de recuperarse.",
+      "El Emax se recupera solo si se administra un activador alostérico.",
+      "El antagonismo competitivo nunca es superable, a diferencia del no competitivo.",
+      "El Emax se recupera, porque el aumento de la dosis del agonista desplaza al antagonista competitivo del receptor."
+    ],
+    "correctaIndex": 3,
+    "justificacion": "El antagonismo competitivo es superable: aumentar la dosis del agonista desplaza al antagonista y se recupera el Emax (ejemplo: atropina)."
+  },
+  {
+    "num": 7,
+    "bloque": 3,
+    "titulo": "Unidad 3 · Interacción fármaco-receptor",
+    "pregunta": "Un activador alostérico, a diferencia de un agonista total, ejerce su efecto sobre la curva dosis-respuesta del agonista principal de la siguiente manera:",
+    "opciones": [
+      "Desplaza la curva hacia la derecha, aumentando la CE50 aparente.",
+      "Reduce el Emax sin alterar la CE50.",
+      "Desplaza la curva hacia la izquierda (menor CE50) y/o aumenta el Emax, potenciando el efecto del agonista.",
+      "No produce ningún cambio visible en la curva dosis-respuesta."
+    ],
+    "correctaIndex": 2,
+    "justificacion": "El activador alostérico desplaza la curva del agonista hacia la izquierda (menor CE50) y/o aumenta el Emax, potenciando su efecto."
+  },
+  {
+    "num": 8,
+    "bloque": 3,
+    "titulo": "Unidad 3 · Interacción fármaco-receptor",
+    "pregunta": "El hecho de que cada fármaco reconozca específicamente a un receptor determinado, y no a otros con estructura diferente, se explica por la propiedad de:",
+    "opciones": [
+      "Afinidad",
+      "Actividad intrínseca",
+      "Potencia farmacológica",
+      "Selectividad, que depende del tamaño, forma, carga eléctrica y posición del fármaco respecto al receptor"
+    ],
+    "correctaIndex": 3,
+    "justificacion": "La selectividad depende de tamaño, forma, carga eléctrica y posición: cada receptor («cerradura») tiene su fármaco («llave») específico."
+  },
+  {
+    "num": 9,
+    "bloque": 4,
+    "titulo": "Unidad 4 · Modelos teóricos de la interacción",
+    "pregunta": "En el modelo de Clark, la relación estructural entre fármaco y receptor se describe mediante la analogía de «cerradura-llave», lo cual implica que:",
+    "opciones": [
+      "El fármaco modifica genéticamente al receptor.",
+      "El fármaco y el receptor tienen características estructurales complementarias.",
+      "El receptor cambia de forma aleatoria ante cualquier fármaco.",
+      "La actividad intrínseca no depende de la estructura del fármaco."
+    ],
+    "correctaIndex": 1,
+    "justificacion": "El modelo de Clark describe una relación estructural «cerradura-llave»: el fármaco y su receptor tienen características estructurales complementarias."
+  },
+  {
+    "num": 10,
+    "bloque": 4,
+    "titulo": "Unidad 4 · Modelos teóricos de la interacción",
+    "pregunta": "Según los datos de preferencia conformacional (R inactivo vs. R* activo) del modelo de dos estados, un receptor en reposo (sin fármaco presente) se encuentra aproximadamente en:",
+    "opciones": [
+      "50% de receptores en estado activo (R*), reflejando la actividad constitutiva basal",
+      "90% de receptores en estado activo (R*)",
+      "66% de receptores en estado activo (R*)",
+      "0% de receptores en estado activo (R*)"
+    ],
+    "correctaIndex": 0,
+    "justificacion": "En reposo (sin fármaco), el receptor se encuentra en un equilibrio basal de 50% en estado activo (R*), el punto de partida sobre el que actúan los distintos tipos de fármacos."
+  },
+  {
+    "num": 11,
+    "bloque": 4,
+    "titulo": "Unidad 4 · Modelos teóricos de la interacción",
+    "pregunta": "Según los modelos de interacción fármaco-receptor, ¿qué proceso celular regula la cantidad de receptores disponibles para la unión de un fármaco?",
+    "opciones": [
+      "La transcripción génica, que regula la expresión de los receptores disponibles",
+      "La actividad intrínseca del ligando",
+      "La potencia farmacológica del agonista",
+      "El pD2 del fármaco"
+    ],
+    "correctaIndex": 0,
+    "justificacion": "La transcripción génica regula la expresión de los receptores disponibles para la unión del fármaco."
+  },
+  {
+    "num": 12,
+    "bloque": 5,
+    "titulo": "Receptor intracelular",
+    "pregunta": "En el mecanismo del receptor intracelular, una vez formado el dímero de receptores activados en el núcleo, ¿qué estructura permite el reconocimiento específico del ADN?",
+    "opciones": [
+      "Los dedos de zinc, que reconocen el elemento de respuesta hormonal (HRE)",
+      "Las proteínas de choque térmico (HSP)",
+      "La subunidad JAK",
+      "El dominio de unión a GTP"
+    ],
+    "correctaIndex": 0,
+    "justificacion": "Los dedos de zinc del receptor reconocen el elemento de respuesta hormonal (HRE) en el ADN, dentro del núcleo."
+  },
+  {
+    "num": 13,
+    "bloque": 6,
+    "titulo": "Receptor enzimático de membrana (RTK · JAK-STAT)",
+    "pregunta": "Además de los receptores con dominio tirosina cinasa (EGF, PDGF, insulina), los receptores enzimáticos de membrana también pueden tener un dominio catalítico de:",
+    "opciones": [
+      "Fosfolipasa C exclusivamente",
+      "Adenilil ciclasa exclusivamente",
+      "Acetilcolinesterasa",
+      "Serina/treonina cinasa (TGF-β) o guanilil ciclasa (péptidos natriuréticos)"
+    ],
+    "correctaIndex": 3,
+    "justificacion": "Según el dominio catalítico existen también receptores con serina/treonina cinasa (TGF-β) y con guanilil ciclasa (péptidos natriuréticos)."
+  },
+  {
+    "num": 14,
+    "bloque": 6,
+    "titulo": "Receptor enzimático de membrana (RTK · JAK-STAT)",
+    "pregunta": "La vía JAK-STAT es utilizada por receptores de citocinas como la eritropoyetina, el interferón y la hormona de crecimiento, los cuales se caracterizan por:",
+    "opciones": [
+      "Poseer actividad tirosina cinasa intrínseca en su dominio intracelular.",
+      "Activar directamente la vía Ras-MAPK sin fosforilación previa.",
+      "Actuar exclusivamente mediante receptores acoplados a proteína G.",
+      "No tener actividad enzimática propia, dependiendo de una tirosina cinasa citoplasmática asociada de la familia JAK."
+    ],
+    "correctaIndex": 3,
+    "justificacion": "Los receptores de citocinas no tienen actividad enzimática propia: dependen de una tirosina cinasa citoplasmática asociada de la familia JAK."
+  },
+  {
+    "num": 15,
+    "bloque": 6,
+    "titulo": "Receptor enzimático de membrana (RTK · JAK-STAT)",
+    "pregunta": "La terminación de la señal en la vía JAK-STAT involucra específicamente:",
+    "opciones": [
+      "La hidrólisis de GTP por la subunidad α de una proteína G.",
+      "La internalización del receptor sin participación de fosfatasas.",
+      "La degradación de la acetilcolina por la acetilcolinesterasa.",
+      "Las proteínas SOCS (inducidas por STAT) que inhiben a JAK, junto con fosfatasas que desfosforilan el receptor."
+    ],
+    "correctaIndex": 3,
+    "justificacion": "La terminación de JAK-STAT involucra proteínas SOCS que inhiben a JAK y fosfatasas (SHP-1/2) que desfosforilan el receptor; el STAT desfosforilado vuelve al citoplasma."
+  },
+  {
+    "num": 16,
+    "bloque": 7,
+    "titulo": "Receptor ligado a canal iónico",
+    "pregunta": "El verapamilo y el nifedipino ejercen su efecto terapéutico bloqueando canales de:",
+    "opciones": [
+      "Na+ dependientes de voltaje.",
+      "Ca2+ tipo L, presentes en músculo liso vascular y cardíaco.",
+      "K+ tipo GIRK.",
+      "Cl- regulados por GABA."
+    ],
+    "correctaIndex": 1,
+    "justificacion": "El verapamilo y el nifedipino bloquean canales de Ca2+ tipo L, presentes en músculo liso vascular y cardíaco."
+  },
+  {
+    "num": 17,
+    "bloque": 7,
+    "titulo": "Receptor ligado a canal iónico",
+    "pregunta": "Los canales dependientes de voltaje poseen un segmento sensor de voltaje rico en arginina que, al despolarizarse la membrana, se desplaza y abre el canal. Este segmento, y los tres estados funcionales que puede adoptar el canal, corresponden a:",
+    "opciones": [
+      "Segmento S1; estados abierto y cerrado únicamente.",
+      "Segmento S4; estados cerrado, abierto e inactivado.",
+      "Dominio HRE; estados activo e inactivo.",
+      "Dominio GEF; estados fosforilado y desfosforilado."
+    ],
+    "correctaIndex": 1,
+    "justificacion": "El segmento S4, rico en arginina, es el sensor de voltaje; el canal transita por tres estados: cerrado, abierto e inactivado."
+  },
+  {
+    "num": 18,
+    "bloque": 8,
+    "titulo": "Receptor acoplado a proteína G",
+    "pregunta": "En la vía Gs, tras la unión de la epinefrina a su receptor y la activación de la subunidad α, la adenilil ciclasa convierte ATP en AMPc, el cual activa a su efectora principal. ¿Cuál es esta efectora?",
+    "opciones": [
+      "La fosfolipasa C-β.",
+      "La proteína cinasa C (PKC).",
+      "La proteína cinasa A (PKA).",
+      "La calmodulina."
+    ],
+    "correctaIndex": 2,
+    "justificacion": "El AMPc activa a la PKA, la efectora principal de la vía Gs, que fosforila proteínas celulares según el tejido."
+  },
+  {
+    "num": 19,
+    "bloque": 8,
+    "titulo": "Receptor acoplado a proteína G",
+    "pregunta": "Una familia de proteína G menos frecuente, acoplada a receptores de trombina, activa a RhoGEF y a la proteína RhoA, regulando principalmente:",
+    "opciones": [
+      "La producción de segundos mensajeros como el AMPc.",
+      "La transcripción génica directa.",
+      "El citoesqueleto y la contracción celular.",
+      "La apertura de canales de Ca2+ tipo L."
+    ],
+    "correctaIndex": 2,
+    "justificacion": "La familia G12/13, acoplada a receptores de trombina, activa RhoGEF → RhoA, regulando el citoesqueleto y la contracción celular."
+  },
+  {
+    "num": 20,
+    "bloque": 8,
+    "titulo": "Receptor acoplado a proteína G",
+    "pregunta": "La terminación de la señal en la vía Gq involucra varios mecanismos simultáneos. ¿Cuál de las siguientes opciones NO forma parte de esta terminación?",
+    "opciones": [
+      "La desfosforilación (o fosforilación a IP4) del IP3.",
+      "El retorno del Ca2+ al retículo mediante SERCA, o su salida mediante PMCA/NCX.",
+      "La fosforilación del receptor por la PKA, propia de la vía Gs.",
+      "La hidrólisis del GTP de la subunidad αq por su actividad GTPasa intrínseca."
+    ],
+    "correctaIndex": 2,
+    "justificacion": "La terminación de Gq incluye desfosforilación del IP3, retorno del Ca2+ al retículo (SERCA) o su salida (PMCA/NCX), e hidrólisis del GTP de αq. La fosforilación por PKA es propia de la vía Gs, no de esta terminación."
+  },
+  {
+    "num": 21,
+    "bloque": 9,
+    "titulo": "Sistema nervioso autónomo",
+    "pregunta": "Dentro de la vesícula sináptica de la terminación nerviosa simpática, la dopamina se convierte en noradrenalina gracias a la enzima:",
+    "opciones": [
+      "Tirosina hidroxilasa.",
+      "Dopamina β-hidroxilasa.",
+      "Dopa descarboxilasa.",
+      "Colina acetiltransferasa."
+    ],
+    "correctaIndex": 1,
+    "justificacion": "La dopamina β-hidroxilasa, dentro de la vesícula sináptica, convierte la dopamina en noradrenalina."
+  },
+  {
+    "num": 22,
+    "bloque": 9,
+    "titulo": "Sistema nervioso autónomo",
+    "pregunta": "En la médula suprarrenal, la noradrenalina se convierte adicionalmente en adrenalina gracias a la enzima:",
+    "opciones": [
+      "Monoaminooxidasa (MAO).",
+      "Feniletanolamina-N-metiltransferasa.",
+      "Catecol-O-metiltransferasa (COMT).",
+      "Acetilcolinesterasa."
+    ],
+    "correctaIndex": 1,
+    "justificacion": "En la médula suprarrenal, la feniletanolamina-N-metiltransferasa convierte adicionalmente la noradrenalina en adrenalina."
+  },
+  {
+    "num": 23,
+    "bloque": 9,
+    "titulo": "Sistema nervioso autónomo",
+    "pregunta": "Los receptores nicotínicos se dividen en dos subtipos según su localización. El subtipo N1 se localiza en la unión neuromuscular (placa terminal), mientras que el subtipo N2 se localiza en:",
+    "opciones": [
+      "El músculo liso y las glándulas.",
+      "El corazón, regulando la frecuencia cardíaca.",
+      "Los vasos sanguíneos, mediando vasoconstricción.",
+      "Los ganglios autónomos y el sistema nervioso central, incluida la médula suprarrenal."
+    ],
+    "correctaIndex": 3,
+    "justificacion": "El receptor N2 se localiza en los ganglios autónomos y el sistema nervioso central (incluida la médula suprarrenal), a diferencia del N1 en la placa terminal."
+  },
+  {
+    "num": 24,
+    "bloque": 9,
+    "titulo": "Sistema nervioso autónomo",
+    "pregunta": "Los receptores muscarínicos M1, M4 y M5 se localizan principalmente en el sistema nervioso central, relacionados con memoria y atención, mientras que los receptores M3 median principalmente:",
+    "opciones": [
+      "La disminución de la frecuencia cardíaca.",
+      "La liberación de noradrenalina y acetilcolina.",
+      "Broncoconstricción, vasoconstricción y secreción en músculo liso y glándulas.",
+      "La lipólisis del tejido adiposo."
+    ],
+    "correctaIndex": 2,
+    "justificacion": "Los receptores M3 median broncoconstricción, vasoconstricción y secreción en músculo liso y glándulas, a diferencia de M1/M4/M5 (SNC) o M2 (corazón)."
+  },
+  {
+    "num": 25,
+    "bloque": 9,
+    "titulo": "Sistema nervioso autónomo",
+    "pregunta": "Un receptor adrenérgico α2, acoplado a proteína Gi, cumple principalmente la función de:",
+    "opciones": [
+      "Aumentar el gasto cardíaco.",
+      "Inhibir la liberación de noradrenalina/acetilcolina y favorecer la agregación plaquetaria.",
+      "Relajar el músculo bronquial, vascular y urinario.",
+      "Contraer el músculo liso vascular, produciendo vasoconstricción."
+    ],
+    "correctaIndex": 1,
+    "justificacion": "El receptor α2, acoplado a Gi, inhibe la liberación de NA/ACh y favorece la agregación plaquetaria."
+  },
+  {
+    "num": 26,
+    "bloque": 9,
+    "titulo": "Sistema nervioso autónomo",
+    "pregunta": "El receptor adrenérgico β3, acoplado a la vía Gs, es responsable principalmente de:",
+    "opciones": [
+      "La lipólisis del tejido adiposo.",
+      "Aumentar la frecuencia cardíaca.",
+      "La broncodilatación.",
+      "La vasoconstricción cutánea."
+    ],
+    "correctaIndex": 0,
+    "justificacion": "El receptor β3, acoplado a Gs, es responsable de la lipólisis del tejido adiposo."
+  },
+  {
+    "num": 27,
+    "bloque": 9,
+    "titulo": "Sistema nervioso autónomo",
+    "pregunta": "A diferencia de la MAO, que degrada aminas actuando sobre el grupo amino de las catecolaminas, la enzima COMT actúa mediante el siguiente mecanismo:",
+    "opciones": [
+      "Hidroliza el enlace éster de la acetilcolina.",
+      "Fosforila residuos de tirosina en el receptor postsináptico.",
+      "Bloquea el transportador presináptico de recaptación.",
+      "Rompe un hidroxilo del anillo catecol y lo sustituye por un grupo metilo."
+    ],
+    "correctaIndex": 3,
+    "justificacion": "La COMT rompe un hidroxilo del anillo catecol y lo sustituye por un metilo, siendo la segunda vía de degradación de catecolaminas, complementaria a la MAO."
+  },
+  {
+    "num": 28,
+    "bloque": 9,
+    "titulo": "Sistema nervioso autónomo",
+    "pregunta": "El betanecol y la pilocarpina son fármacos colinérgicos de acción directa que actúan como agonistas muscarínicos, utilizados respectivamente para tratar:",
+    "opciones": [
+      "Retención urinaria/íleo posoperatorio, y glaucoma/síndrome de Sjögren.",
+      "Miastenia grave y cinetosis.",
+      "Intoxicación por organofosforados y asma.",
+      "Hipertensión arterial y arritmias."
+    ],
+    "correctaIndex": 0,
+    "justificacion": "El betanecol se usa en íleo posoperatorio/retención urinaria, y la pilocarpina en glaucoma/síndrome de Sjögren; ambos son agonistas muscarínicos de acción directa."
+  },
+  {
+    "num": 29,
+    "bloque": 9,
+    "titulo": "Sistema nervioso autónomo",
+    "pregunta": "Los organofosforados como el paratión y el sarín son anticolinesterasas de acción prolongada utilizadas como insecticidas o agentes bélicos, mientras que la atropina y la escopolamina actúan como:",
+    "opciones": [
+      "Antagonistas colinérgicos alcaloides, que bloquean receptores muscarínicos (midriasis, cinetosis, premedicación anestésica).",
+      "Agonistas nicotínicos selectivos, útiles en el cese del tabaquismo.",
+      "Anticolinesterasas de acción corta, utilizadas para diagnóstico de miastenia grave.",
+      "Ésteres de colina de acción directa."
+    ],
+    "correctaIndex": 0,
+    "justificacion": "La atropina y la escopolamina son antagonistas colinérgicos alcaloides que bloquean receptores muscarínicos: midriasis, cinetosis, premedicación anestésica."
+  }
+];
+
+// ---- Estado ----
+// state[i] = { answered: bool, selected: number|null, correct: bool|null, attempts: number, active: bool }
+let state = QUESTIONS.map(() => ({ answered:false, selected:null, correct:null, attempts:0, active:true }));
+let reviewMode = false; // true = solo estamos mostrando/activando las preguntas falladas
+
+const root = document.getElementById('quiz-root');
+const scoreText = document.getElementById('score-text');
+const progressFill = document.getElementById('progress-fill');
+const progressLabel = document.getElementById('progress-label');
+const btnRetryFails = document.getElementById('btn-retry-fails');
+const btnReset = document.getElementById('btn-reset');
+const completionBanner = document.getElementById('completion-banner');
+const completionTitle = document.getElementById('completion-title');
+const completionSub = document.getElementById('completion-sub');
+
+const BLOQUES = {};
+QUESTIONS.forEach(q => { if(!BLOQUES[q.bloque]) BLOQUES[q.bloque] = q.titulo; });
+
+function render(){
+  root.innerHTML = '';
+  let currentBloque = null;
+  QUESTIONS.forEach((q, i) => {
+    if(q.bloque !== currentBloque){
+      currentBloque = q.bloque;
+      const h = document.createElement('div');
+      h.className = 'flex items-center gap-3 mt-10 mb-4 first:mt-0';
+      h.innerHTML = `
+        <span class="badge-num w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold shrink-0">${q.bloque}</span>
+        <h2 class="font-display text-lg text-violet-900">${BLOQUES[q.bloque]}</h2>`;
+      root.appendChild(h);
+    }
+
+    const st = state[i];
+    if(!st.active){ return; } // en modo repaso, ocultar acertadas
+
+    const card = document.createElement('div');
+    card.className = 'card p-5 mb-4 fade-in';
+    card.id = 'q-card-' + i;
+
+    const letters = ['A','B','C','D'];
+    const optsHtml = q.opciones.map((opt, oi) => {
+      let cls = 'opt-btn';
+      let icon = '';
+      if(st.answered){
+        cls += ' opt-disabled';
+        if(oi === q.correctaIndex){ cls += ' opt-reveal'; icon = ' ✓'; }
+        if(oi === st.selected && st.selected !== q.correctaIndex){ cls += ' opt-incorrect'; icon = ' ✕'; }
+      }
+      return `<button data-i="${i}" data-oi="${oi}" class="${cls} w-full text-left rounded-lg px-4 py-3 mb-2 flex gap-3 items-start" ${st.answered ? 'disabled':''}>
+                <span class="font-semibold shrink-0">${letters[oi]}${icon}</span>
+                <span class="text-sm leading-snug">${opt}</span>
+              </button>`;
+    }).join('');
+
+    const justHtml = st.answered ? `
+      <div id="just-${i}" class="mt-2 p-3 rounded-lg text-sm ${st.correct ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-800 border border-rose-200'}">
+        <p class="font-medium mb-1">${st.correct ? 'Correcto.' : 'Incorrecto — la respuesta correcta está resaltada arriba.'}</p>
+        <p>${q.justificacion}</p>
+      </div>` : '';
+
+    card.innerHTML = `
+      <p class="text-sm font-medium text-slate-500 mb-2">Pregunta ${q.num}</p>
+      <p class="mb-4 leading-snug">${q.pregunta}</p>
+      <div>${optsHtml}</div>
+      ${justHtml}
+    `;
+    root.appendChild(card);
+  });
+
+  attachHandlers();
+  updateStats();
+}
+
+function attachHandlers(){
+  root.querySelectorAll('button[data-i]').forEach(btn => {
+    btn.addEventListener('click', onAnswer);
+  });
+}
+
+function onAnswer(e){
+  const i = parseInt(e.currentTarget.dataset.i, 10);
+  const oi = parseInt(e.currentTarget.dataset.oi, 10);
+  const st = state[i];
+  if(st.answered) return;
+  st.answered = true;
+  st.selected = oi;
+  st.attempts += 1;
+  st.correct = (oi === QUESTIONS[i].correctaIndex);
+  render();
+  requestAnimationFrame(() => {
+    const just = document.getElementById('just-' + i);
+    if(just) just.scrollIntoView({ behavior:'smooth', block:'center' });
+  });
+}
+
+function updateStats(){
+  const activeIdx = state.map((s,i)=>i).filter(i=>state[i].active);
+  const answeredActive = activeIdx.filter(i=>state[i].answered);
+  const correctCount = state.filter(s=>s.correct).length;
+  const totalAttempts = state.reduce((a,s)=>a+s.attempts,0);
+
+  scoreText.textContent = `${correctCount} / ${totalAttempts}`;
+
+  const denom = activeIdx.length || 1;
+  const pct = Math.round((answeredActive.length/denom)*100);
+  progressFill.style.width = pct + '%';
+  progressLabel.textContent = reviewMode
+    ? `Repaso: ${answeredActive.length} de ${activeIdx.length} preguntas falladas respondidas`
+    : `${answeredActive.length} de ${activeIdx.length} respondidas`;
+
+  const allAnswered = activeIdx.length > 0 && answeredActive.length === activeIdx.length;
+  const failsNow = activeIdx.filter(i => state[i].answered && !state[i].correct);
+
+  if(allAnswered && failsNow.length > 0){
+    btnRetryFails.classList.remove('hidden');
+  } else {
+    btnRetryFails.classList.add('hidden');
+  }
+
+  if(allAnswered && failsNow.length === 0){
+    completionBanner.classList.remove('hidden');
+    completionTitle.textContent = reviewMode ? '¡Repaso completado — 100% correcto!' : '¡Examen completado — 100% correcto!';
+    completionSub.textContent = `Total de intentos acumulados: ${totalAttempts}. Aciertos: ${correctCount}/29.`;
+  } else {
+    completionBanner.classList.add('hidden');
+  }
+}
+
+btnRetryFails.addEventListener('click', () => {
+  reviewMode = true;
+  state.forEach(s => {
+    if(s.active && s.answered && !s.correct){
+      s.answered = false;
+      s.selected = null;
+      s.correct = null;
+      s.active = true;
+    } else if(s.active && s.answered && s.correct){
+      s.active = false; // ocultar las ya acertadas
+    }
+  });
+  render();
+  document.getElementById('progressbar-sticky').scrollIntoView({behavior:'smooth'});
+});
+
+btnReset.addEventListener('click', () => {
+  reviewMode = false;
+  state = QUESTIONS.map(() => ({ answered:false, selected:null, correct:null, attempts:0, active:true }));
+  render();
+  window.scrollTo({top:0, behavior:'smooth'});
+});
+
+render();
+</script>
+</body>
+</html>
